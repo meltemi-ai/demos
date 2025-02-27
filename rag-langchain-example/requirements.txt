@@ -1,0 +1,10 @@
+docx2txt
+langchain-chroma
+langchain-community
+langchain-ollama
+langgraph
+litellm
+pypdf
+sentence_transformers
+langchain_huggingface
+rank_bm25
