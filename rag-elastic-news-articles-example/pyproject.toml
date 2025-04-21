@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "rag-elastic-news-articles-example"
+version = "0.1.0"
+description = "Check recent news with Krikri and other LLMs"
+authors = ["Prokopis Prokopidis <prokopis@athenarc.gr>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+streamlit = "^1.44.1"
+dotenv = "^0.9.9"
+openai = "^1.75.0"
+llama-index-core = "^0.12.31"
+argparse = "^1.4.0"
+elasticsearch = "^9.0.0"
+flagembedding = {git = "https://github.com/FlagOpen/FlagEmbedding.git", rev = "v1.3.4"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
