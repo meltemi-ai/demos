@@ -113,6 +113,7 @@ def get_response(es, elastic_index, question_embedding):
             "query_vector": question_embedding,
             "k": 3,
             "num_candidates": 100,
+            #"similarity": 50,
         },
     )
     return response
