@@ -33,5 +33,18 @@ The [`app.py`](rag-elastic-news-articles-example/app.py) script provides:
    ```bash
    git clone https://github.com/meltemi-ai/demos.git
    cd rag-elastic-news-articles-example
-   poetry shell
-   streamlit run app.py  --server.port 5999
+2. Install dependencies:
+   ```bash
+   poetry shell #FIXME
+   ```
+
+## Usage
+1. Ingest and index document
+   ```bash 
+   python ingest_news_articles_elastic.py # FIXME
+   ```
+   
+2. Run the streamlit app
+   ```bash 
+   streamlit run app.py  --server.port 5999 # FIXME
+   ```
