@@ -17,6 +17,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 from elasticsearch import Elasticsearch, helpers
 from FlagEmbedding import BGEM3FlagModel
 
+def pretty_print_response(response):
+    """
+    Pretty print the response from Elasticsearch.
+    """
+    for hit in response["hits"]["hits"]:
+        id = hit["_id"]
+        score = hit["_score"]
+        title = hit["_source"]["metadata.title"]
+        text = hit["_source"]["text"]
+        url = hit["_source"]["metadata.url"]
+        pretty_output = f"\nID: {id}\nTitle: {title}\nText: {text}\nScore: {score}\nUrl: {url}"
+        print(pretty_output)
+
+
 def get_embedding_model(model_name='BAAI/bge-m3', use_fp16=True):
     """
     Get the embedding model.

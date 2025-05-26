@@ -16,8 +16,17 @@ A demonstration of a **Retrieval-Augmented Generation (RAG) pipeline** using:
 
 ---
 
+### 2. RAG Web Search Demo
+
+A demonstration of a **Retrieval-Augmented Generation (RAG) pipeline** that utilizes web search for information retrieval. This demo uses:
+- **LangChain** for orchestrating the RAG process
+- **Tavily API** for performing web searches
+- **Krikri-DPO** as the LLM for synthesizing answers based on search results
+
+📌 For more details, check the [RAG Web Search Demo README](./rag-web-search-demo/README.md).
+
+---
+
 ## License
 
 This repository is licensed under the **MIT License**.
-
----

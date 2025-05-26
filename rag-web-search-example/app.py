@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+from multiprocessing import context
 import streamlit as st
 import os
 import torch
@@ -14,7 +15,9 @@ from llama_index.core.prompts import PromptTemplate
 import logging
 from logging import getLogger
 from utils import get_elastic_client, get_embedding_model
-
+from duckduckgo_search import DDGS
+from trafilatura import fetch_url, extract
+from urllib.parse import urlparse
 
 logger = getLogger()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -86,7 +89,7 @@ def generate_text(
         )
         return response.choices[0].message.content
     except Exception as e:
-        print(f"Error generating text: {e}")
+        logger.error(f"Error generating text: {e}")
         return None
 
 
@@ -118,18 +121,6 @@ def get_response(es, elastic_index, question_embedding):
     )
     return response
 
-def pretty_print_response(response):
-    """
-    Pretty print the response from Elasticsearch.
-    """
-    for hit in response["hits"]["hits"]:
-        id = hit["_id"]
-        score = hit["_score"]
-        title = hit["_source"]["metadata.title"]
-        text = hit["_source"]["text"]
-        url = hit["_source"]["metadata.url"]
-        pretty_output = f"\nID: {id}\nTitle: {title}\nText: {text}\nScore: {score}\nUrl: {url}"
-        print(pretty_output)
 
 def get_context_str(response):
     """
@@ -137,7 +128,7 @@ def get_context_str(response):
     """
     context = list()
     for hit in response["hits"]["hits"]:
-        context.append("Title: " + hit["_source"]["metadata.title"]) 
+        #context.append("Title: " + hit["_source"]["metadata.title"]) 
         context.append("Text: " + hit["_source"]["text"])
         
         context.append("Πηγή: " + hit["_source"]["metadata.website"])
@@ -168,7 +159,9 @@ def get_prompt(prompt_template, response, question):
     """
     Get the prompt for the model.
     """
-    prompt = prompt_template.format(context_str=get_context_str(response), query_str=question)    
+    context_str = get_context_str(response)
+    logger.debug(f"## Retrieved context: {context_str}")
+    prompt = prompt_template.format(context_str=context_str, query_str=question)    
     return prompt
 
 
@@ -206,10 +199,79 @@ question = st.text_input("Enter your question:")
 llm_options = os.environ["DEMO_LLMS"].split(",")
 selected_llm = st.selectbox("Select an LLM:", llm_options)
 
+
+def search_duckduckgo(query):
+    """
+    Perform a search query using DuckDuckGo and return the search results.
+    """
+    try:
+        response = DDGS().text(query, max_results=5)
+        logger.debug(response)
+        context = list()
+        # body_values = [obj['body'] for obj in response]
+        logger.info(f"## Retrieved context from duckduckgo")
+        for hit in response:
+            try:
+                logger.info(f"Fetching {hit['href']}")
+                downloaded = fetch_url(hit["href"])
+                context.append("Title: " + hit["title"]) 
+                # output main content and comments as plain text
+                context.append("Text: " + extract(downloaded))
+                source = urlparse(hit['href']).netloc
+                context.append("Πηγή: " + source)
+                context.append("URL: " + hit["href"])
+                context.append("---------------------------")
+            except:
+                logger.error(f"Error fetching {hit['href']}")
+        return NL.join(context)
+    except Exception as ex:
+        logger.info(ex)
+        return ""
+
+def get_prompt_ddg(prompt_template, context_str, question):
+    """
+    Get the prompt for the model.
+    """
+    logger.debug(f"## Retrieved context: {context_str}")
+    prompt = prompt_template.format(context_str=context_str, query_str=question)    
+    return prompt
+
+def process_question_using_ddg(question):
+    with st.spinner(f"Processing question and finding relevant content from the web..."):
+        context_str = search_duckduckgo(query=question)
+    with st.spinner(f"Generating answer using {selected_llm}..."):
+        prompt = get_prompt_ddg(prompt_template, context_str, question)
+        answer = generate_text(client, model=selected_llm, user_prompt=prompt)    
+        return answer
+
+def process_question_using_elastic(question):
+    answer = None
+    with st.spinner(f"Processing question using cached content from Elasticsearch..."):
+        logger.info(f"## Question: {question}")
+        embed_model = _get_embedding_model()    
+        question_embedding = get_question_embedding(question, embed_model)
+    with st.spinner(f"Finding relevant content..."):
+        response = get_response(es, elastic_index, question_embedding)
+    with st.spinner(f"Generating answer using {selected_llm}..."):
+        prompt = get_prompt(prompt_template, response, question)
+        answer = generate_text(client, model=selected_llm, user_prompt=prompt)
+    return answer
+
+
 if st.button("Get Answer"):
     if question:
-        with st.spinner(f"Asking {selected_llm}..."):
-            answer = process_question(question, elastic_index, selected_llm)
+        try:
+            answer = process_question_using_ddg(question)
+        except Exception as e:
+            # Fallback to elastic
+            st.error(f"An error occurred: {e}")
+            process_question_using_elastic(question)
+        if not answer:
+            # Fallback to elastic
+            answer = process_question_using_elastic(question)
+        if not answer:
+            answer = "No answer found"
+        logger.info(f"## Answer: {answer}")
         st.subheader(f"Answer from {selected_llm}:")
         st.markdown(answer)
     else:
