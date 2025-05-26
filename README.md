@@ -20,10 +20,10 @@ A demonstration of a **Retrieval-Augmented Generation (RAG) pipeline** using:
 
 A demonstration of a **Retrieval-Augmented Generation (RAG) pipeline** that utilizes web search for information retrieval. This demo uses:
 - **LangChain** for orchestrating the RAG process
-- **Tavily API** for performing web searches
+- **Duckduckgo-search** for performing web searches
 - **Krikri-DPO** as the LLM for synthesizing answers based on search results
 
-📌 For more details, check the [RAG Web Search Demo README](./rag-web-search-demo/README.md).
+📌 For more details, check the [RAG Web Search Example README](./rag-web-search-example/README.md).
 
 ---
 
