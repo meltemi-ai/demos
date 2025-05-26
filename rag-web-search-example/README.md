@@ -43,12 +43,14 @@ The `ingest_news_articles_elastic.py` script handles the setup for the Elasticse
    ```
 
 ## Usage
-1. Ingest and index document
-   ```bash 
-   python ingest_news_articles_elastic.py # FIXME
-   ```
+
    
-2. Run the streamlit app
+1. Run the streamlit app
    ```bash 
    streamlit run app.py  --server.port 5999 # FIXME
+   ```
+   
+2. Ingest and index document
+   ```bash 
+   python ingest_news_articles_elastic.py # FIXME
    ```
